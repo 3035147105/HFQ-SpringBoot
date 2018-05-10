@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    ctrade:
+      jdbcUrl: jdbc:mysql://192.168.1.109:3306/ctrade?characterEncoding=UTF-8&useUnicode=true
+      username: root
+      password: 123456
+      driverClassName: com.mysql.jdbc.Driver
+    jsf:
+      jdbcUrl: jdbc:mysql://192.168.1.109:3306/jsf_test?characterEncoding=UTF-8&useUnicode=true
+      username: root
+      password: 123456
+      driverClassName: com.mysql.jdbc.Driver
+  jpa:
+    database: mysql
+    generate-ddl: true
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
