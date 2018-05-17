@@ -1,4 +1,4 @@
-package com.toy.server.dataSource;
+package com.toy.server.config.dataBase;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;

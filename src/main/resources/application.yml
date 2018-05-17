@@ -18,3 +18,12 @@ spring:
       ddl-auto: update
       naming:
         physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+  rabbitmq:
+    host: localhost
+    port: 5672
+#  profiles:
+#    active: usage_message
+#
+#tutorial:
+#  client:
+#    duration: 1000
