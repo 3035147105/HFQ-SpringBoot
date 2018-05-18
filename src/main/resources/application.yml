@@ -21,9 +21,3 @@ spring:
   rabbitmq:
     host: localhost
     port: 5672
-#  profiles:
-#    active: usage_message
-#
-#tutorial:
-#  client:
-#    duration: 1000

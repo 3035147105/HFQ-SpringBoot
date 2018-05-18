@@ -3,6 +3,7 @@ package com.toy.server;
 import com.toy.server.dao.ctrade.UserReposity;
 import com.toy.server.dao.jsf.JsfUserReposity;
 import com.toy.server.entity.ctrade.User;
+import com.toy.server.service.two.WorkSend;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class DemoApplicationTests {
 	@Autowired
 	private JsfUserReposity jsfUserReposity;
 
+	@Autowired
+	private WorkSend workSend;
+
 	@Test
 	public void contextLoads() {
 		List<User> users = userReposity.findAll();
@@ -36,6 +40,11 @@ public class DemoApplicationTests {
 		user.setPassword("456456");
 		user.setAge(10);
 		jsfUserReposity.save(user);
+	}
+
+	@Test
+	public void send() throws Exception {
+        workSend.send();
 	}
 
 }
