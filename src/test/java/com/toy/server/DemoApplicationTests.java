@@ -3,6 +3,9 @@ package com.toy.server;
 import com.toy.server.dao.ctrade.UserReposity;
 import com.toy.server.dao.jsf.JsfUserReposity;
 import com.toy.server.entity.ctrade.User;
+import com.toy.server.service.four.Tut4Sender;
+import com.toy.server.service.six.Tut6Sender;
+import com.toy.server.service.three.Send;
 import com.toy.server.service.two.WorkSend;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +28,15 @@ public class DemoApplicationTests {
 	@Autowired
 	private WorkSend workSend;
 
+	@Autowired
+	private Send send;
+
+	@Autowired
+	private Tut4Sender tut4Sender;
+
+	@Autowired
+	private Tut6Sender tut6Sender;
+
 	@Test
 	public void contextLoads() {
 		List<User> users = userReposity.findAll();
@@ -44,7 +56,7 @@ public class DemoApplicationTests {
 
 	@Test
 	public void send() throws Exception {
-        workSend.send();
+        tut6Sender.send();
 	}
 
 }

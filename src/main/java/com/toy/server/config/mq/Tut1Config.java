@@ -1,4 +1,4 @@
-package com.toy.server.config.mq.tut1;
+package com.toy.server.config.mq;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Qualifier;

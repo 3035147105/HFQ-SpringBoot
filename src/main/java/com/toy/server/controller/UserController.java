@@ -2,7 +2,7 @@ package com.toy.server.controller;
 
 import com.toy.server.dao.ctrade.UserReposity;
 import com.toy.server.entity.ctrade.User;
-import com.toy.server.service.Tut1Sender;
+import com.toy.server.service.one.Tut1Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

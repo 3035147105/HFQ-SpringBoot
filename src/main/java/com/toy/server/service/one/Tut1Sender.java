@@ -1,4 +1,4 @@
-package com.toy.server.service;
+package com.toy.server.service.one;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;

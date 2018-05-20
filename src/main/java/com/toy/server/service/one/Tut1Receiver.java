@@ -1,4 +1,4 @@
-package com.toy.server.service;
+package com.toy.server.service.one;
 
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
