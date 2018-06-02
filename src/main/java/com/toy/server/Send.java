@@ -1,11 +1,11 @@
 package com.toy.server;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.MessageProperties;
+import com.rabbitmq.client.*;
 
 import java.io.IOException;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -13,24 +13,55 @@ import java.util.concurrent.TimeoutException;
  * @Date: 2018/5/24 15:21
  */
 public class Send {
-    private final static String QUEUE_NAME = "hello";
 
-    public static void main(String[] argv) throws IOException, TimeoutException {
+    private final static String QUEUE_NAME = "rpc_queue";
+    private String replyQueueName;
+    private final static String EXCHANGE_NAME = "logs";
+    Channel channel;
+    Connection connection;
+
+    public Send() throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
+        connection = factory.newConnection();
+        channel = connection.createChannel();
 
-        // durable=true
-        boolean durable = false;
-        channel.queueDeclare(QUEUE_NAME, durable, false, false, null);
-        String message = getMessage(argv);
-        // PERSISTENT_TEXT_PLAIN
-        channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
-        System.out.println(" [x] Sent '" + message + "'");
+        replyQueueName = channel.queueDeclare().getQueue();
+    }
 
-        channel.close();
+    public String call(String message) throws IOException, TimeoutException, InterruptedException {
+
+        String corrId = UUID.randomUUID().toString();
+        AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
+                .correlationId(corrId)
+                .replyTo(replyQueueName)
+                .build();
+
+        channel.basicPublish("", QUEUE_NAME, props, message.getBytes("UTF-8"));
+
+        final BlockingQueue<String> response = new ArrayBlockingQueue<String>(1);
+
+        channel.basicConsume(replyQueueName, true, new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                if (properties.getCorrelationId().equals(corrId)) {
+                    response.offer(new String(body, "UTF-8"));
+                }
+            }
+        });
+
+        return response.take();
+    }
+
+    public void close() throws IOException {
         connection.close();
+    }
+
+    public static void main(String[] args) throws InterruptedException, TimeoutException, IOException {
+        Send send = new Send();
+        String call = send.call("client send message");
+        System.out.println("get response:" + call);
+        send.close();
     }
 
     private static String getMessage(String[] argv) {

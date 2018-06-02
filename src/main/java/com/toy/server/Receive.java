@@ -10,53 +10,79 @@ import java.util.concurrent.TimeoutException;
  * @Date: 2018/5/24 15:23
  */
 public class Receive {
-    private final static String QUEUE_NAME = "hello";
 
-    public static void main(String[] argv)
-            throws IOException, TimeoutException {
+    private final static String RPC_QUEUE_NAME = "rpc_queue";
+//    private final static String EXCHANGE_NAME = "logs";
+
+    public static void main(String[] argv) {
+
 
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
 
-        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+        Connection connection = null;
+        try {
+            connection      = factory.newConnection();
+            final Channel channel = connection.createChannel();
 
-        //
-        channel.basicQos(1);
+            channel.queueDeclare(RPC_QUEUE_NAME, false, false, false, null);
 
-        Consumer consumer = new DefaultConsumer(channel) {
-            @Override
-            public void handleDelivery(String consumerTag, Envelope envelope,
-                                       AMQP.BasicProperties properties, byte[] body)
-                    throws IOException {
+            channel.basicQos(1);
 
-                String message = new String(body, "UTF-8");
-                try {
-                    doWork(message);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    System.out.println(" [x] Done");
-                    channel.basicAck(envelope.getDeliveryTag(), false);
+            System.out.println(" [x] Awaiting RPC requests");
+
+            Consumer consumer = new DefaultConsumer(channel) {
+                @Override
+                public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                    AMQP.BasicProperties replyProps = new AMQP.BasicProperties
+                            .Builder()
+                            .correlationId(properties.getCorrelationId())
+                            .build();
+
+                    String response = "";
+
+                    try {
+                        String message = new String(body,"UTF-8");
+
+                        System.out.println(" [.] fib(" + message + ")");
+                        response = "server message";
+                    }
+                    catch (RuntimeException e){
+                        System.out.println(" [.] " + e.toString());
+                    }
+                    finally {
+                        channel.basicPublish( "", properties.getReplyTo(), replyProps, response.getBytes("UTF-8"));
+
+                        channel.basicAck(envelope.getDeliveryTag(), false);
+
+                        // RabbitMq consumer worker thread notifies the RPC server owner thread
+                        synchronized(this) {
+                            this.notify();
+                        }
+                    }
                 }
+            };
 
-                System.out.println(" [x] Received '" + message + "'");
+            channel.basicConsume(RPC_QUEUE_NAME, false, consumer);
 
+            // Wait and be prepared to consume the message from RPC client.
+            while (true) {
+                synchronized(consumer) {
+                    try {
+                        consumer.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-        };
-
-        //
-        boolean autoAck = false;
-        channel.basicConsume(QUEUE_NAME, autoAck, consumer);
-    }
-
-    private static void doWork(String message) throws InterruptedException {
-        for (char ch : message.toCharArray()) {
-            if (ch == '.') {
-                Thread.sleep(3000);
-            }
+        } catch (IOException | TimeoutException e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null)
+                try {
+                    connection.close();
+                } catch (IOException _ignore) {}
         }
     }
+
 }
